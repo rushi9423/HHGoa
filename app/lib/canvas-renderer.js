@@ -848,18 +848,39 @@ export function downloadCanvas(canvas, format = 'pfp') {
 /**
  * Generate a small 200x200 thumbnail of the user's cropped photo for the database.
  */
-export function generatePfpThumbnail(img, transform) {
-  if (!img) return null;
+export function generatePfpThumbnail(photo, transform) {
+  if (!photo) return null;
   const canvas = document.createElement('canvas');
   const size = 200;
   canvas.width = size;
   canvas.height = size;
   const ctx = canvas.getContext('2d');
   
-  // The PFP slot is conceptually 1080x1080. 
-  // To get the exact same crop, we scale everything by 200/1080.
-  ctx.scale(200/1080, 200/1080);
-  drawTransformedImage(ctx, img, transform, 1080, 1080, 0, 0);
+  const { offsetX = 0, offsetY = 0, scale = 1, rotation = 0 } = transform || {};
+  
+  // Use 1080 as the reference size since PFP uses 1080x1080
+  const refSize = 1080;
+  const scaleRatio = size / refSize;
+  
+  ctx.scale(scaleRatio, scaleRatio);
+  
+  const imgAspect = photo.width / photo.height;
+  let drawW, drawH;
+  
+  // Basic cover math
+  if (imgAspect > 1) {
+    drawH = refSize * scale;
+    drawW = drawH * imgAspect;
+  } else {
+    drawW = refSize * scale;
+    drawH = drawW / imgAspect;
+  }
+
+  ctx.save();
+  ctx.translate(refSize / 2 + offsetX, refSize / 2 + offsetY);
+  ctx.rotate((rotation * Math.PI) / 180);
+  ctx.drawImage(photo, -drawW / 2, -drawH / 2, drawW, drawH);
+  ctx.restore();
   
   return canvas.toDataURL('image/jpeg', 0.8);
 }
