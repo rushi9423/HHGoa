@@ -8,6 +8,8 @@ export default function HistoryPage() {
   const [pagination, setPagination] = useState({ page: 1, total: 0, totalPages: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [selectedBuilder, setSelectedBuilder] = useState(null);
+  const [isResetting, setIsResetting] = useState(false);
 
   const fetchHistory = useCallback(async (page = 1) => {
     setLoading(true);
@@ -35,6 +37,33 @@ export default function HistoryPage() {
   const goToPage = (page) => {
     if (page < 1 || page > pagination.totalPages) return;
     fetchHistory(page);
+  };
+
+  const handleResetDatabase = async () => {
+    const password = window.prompt("⚠️ WARNING: This will delete ALL Builder IDs!\n\nEnter the Admin Password to continue:");
+    
+    if (!password) return; // Cancelled
+    
+    setIsResetting(true);
+    try {
+      const res = await fetch('/api/builder-id/reset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password })
+      });
+      const data = await res.json();
+      
+      if (data.error) {
+        alert('❌ Reset failed: ' + data.error);
+      } else {
+        alert('✅ ' + data.message);
+        fetchHistory(1); // Refresh the list
+      }
+    } catch (err) {
+      alert('❌ Network error during reset.');
+    } finally {
+      setIsResetting(false);
+    }
   };
 
   return (
@@ -148,7 +177,8 @@ export default function HistoryPage() {
             {records.map((record, index) => (
               <div
                 key={record.id || index}
-                className="card-glass p-4 animate-fade-in-up transition-all hover:scale-[1.01]"
+                onClick={() => setSelectedBuilder(record)}
+                className="card-glass p-4 animate-fade-in-up transition-all hover:scale-[1.01] cursor-pointer hover:bg-white/5"
                 style={{ animationDelay: `${index * 0.05}s` }}
               >
                 <div className="flex items-start justify-between gap-3">
@@ -254,11 +284,124 @@ export default function HistoryPage() {
       </main>
 
       {/* Footer */}
-      <footer className="text-center py-4 opacity-30">
-        <p className="text-xs" style={{ fontFamily: '"Space Mono", monospace' }}>
+      <footer className="text-center py-6 mt-auto">
+        <p className="text-xs opacity-30 mb-4" style={{ fontFamily: '"Space Mono", monospace' }}>
           {BRAND.event.name} · {BRAND.event.dates}
         </p>
+        
+        <button 
+          onClick={handleResetDatabase}
+          disabled={isResetting}
+          className="text-[10px] tracking-[2px] uppercase opacity-20 hover:opacity-100 hover:text-red-500 transition-all px-3 py-1 border border-transparent hover:border-red-500/30 rounded"
+          style={{ fontFamily: '"Space Mono", monospace' }}
+        >
+          {isResetting ? 'Resetting...' : '⚠️ Reset Database'}
+        </button>
       </footer>
+
+      {/* Builder Details Popup Modal */}
+      {selectedBuilder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in">
+          {/* Backdrop */}
+          <div 
+            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            onClick={() => setSelectedBuilder(null)}
+          />
+          
+          {/* Modal Content */}
+          <div className="card-glass relative z-10 w-full max-w-sm overflow-hidden animate-fade-in-up border border-white/20 shadow-2xl">
+            {/* Close Button */}
+            <button 
+              onClick={() => setSelectedBuilder(null)}
+              className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-black/30 hover:bg-black/50 text-white/50 hover:text-white transition-colors z-20"
+            >
+              ✕
+            </button>
+            
+            {/* Top Bar */}
+            <div className="bg-white/5 px-6 py-4 border-b border-white/10">
+              <span className="text-xs tracking-[2px] uppercase opacity-80"
+                style={{ fontFamily: '"Space Mono", monospace', color: 'var(--hhg-yellow)' }}>
+                Verified Builder
+              </span>
+            </div>
+            
+            {/* Details */}
+            <div className="p-6 relative">
+              {/* Subtle background glow */}
+              <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl opacity-20 pointer-events-none"
+                style={{ background: 'var(--hhg-pink)' }} />
+
+              <div className="flex items-center gap-3 mb-4">
+                <span className="text-2xl font-bold"
+                  style={{ fontFamily: '"Space Mono", monospace', color: 'var(--hhg-pink)' }}>
+                  {selectedBuilder.formattedId}
+                </span>
+                <span className="pill-pink text-xs">
+                  {selectedBuilder.builderClass}
+                </span>
+              </div>
+              
+              <h2 className="text-3xl sm:text-4xl mb-6"
+                style={{ fontFamily: '"Anton", sans-serif', color: 'var(--hhg-cream)', letterSpacing: '1px' }}>
+                {selectedBuilder.name?.toUpperCase()}
+              </h2>
+
+              <div className="space-y-4">
+                <div className="bg-black/20 p-3 rounded-lg border border-white/5">
+                  <p className="text-[10px] uppercase tracking-[2px] opacity-50 mb-1"
+                    style={{ fontFamily: '"Space Mono", monospace' }}>
+                    Title
+                  </p>
+                  <p className="text-sm font-bold" style={{ fontFamily: '"Space Mono", monospace', color: 'var(--hhg-yellow)' }}>
+                    {selectedBuilder.builderTitle}
+                  </p>
+                </div>
+                
+                <div className="bg-black/20 p-3 rounded-lg border border-white/5">
+                  <p className="text-[10px] uppercase tracking-[2px] opacity-50 mb-1"
+                    style={{ fontFamily: '"Space Mono", monospace' }}>
+                    Role
+                  </p>
+                  <p className="text-sm" style={{ fontFamily: '"Space Mono", monospace' }}>
+                    {selectedBuilder.role}
+                  </p>
+                </div>
+                
+                {selectedBuilder.team && (
+                  <div className="bg-black/20 p-3 rounded-lg border border-white/5">
+                    <p className="text-[10px] uppercase tracking-[2px] opacity-50 mb-1"
+                      style={{ fontFamily: '"Space Mono", monospace' }}>
+                      Team
+                    </p>
+                    <p className="text-sm" style={{ fontFamily: '"Space Mono", monospace' }}>
+                      {selectedBuilder.team}
+                    </p>
+                  </div>
+                )}
+
+                {selectedBuilder.handle && (
+                  <div className="bg-black/20 p-3 rounded-lg border border-white/5">
+                    <p className="text-[10px] uppercase tracking-[2px] opacity-50 mb-1"
+                      style={{ fontFamily: '"Space Mono", monospace' }}>
+                      X Handle
+                    </p>
+                    <p className="text-sm" style={{ fontFamily: '"Space Mono", monospace', color: 'var(--hhg-yellow)' }}>
+                      @{selectedBuilder.handle}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="bg-black/30 px-6 py-3 text-center border-t border-white/5">
+              <p className="text-xs opacity-40" style={{ fontFamily: '"Space Mono", monospace' }}>
+                Issued: {selectedBuilder.issuedDate}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
