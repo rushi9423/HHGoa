@@ -79,7 +79,9 @@ export default function Home() {
     if (!name || !role) return;
     setIsGeneratingId(true);
     try {
-      const pfpBase64 = uploadedPhoto ? generatePfpThumbnail(uploadedPhoto, photoTransform) : null;
+      const pfpToUse = framePhoto || cardPhoto;
+      const transformToUse = framePhoto ? frameTransform : cardTransform;
+      const pfpBase64 = pfpToUse ? generatePfpThumbnail(pfpToUse, transformToUse) : null;
 
       const res = await fetch('/api/builder-id', {
         method: 'POST',
@@ -104,7 +106,7 @@ export default function Home() {
     } finally {
       setIsGeneratingId(false);
     }
-  }, [name, role, team, handle, builderClass, builderTitle, issuedDate, showToast]);
+  }, [name, role, team, handle, builderClass, builderTitle, issuedDate, showToast, framePhoto, cardPhoto, frameTransform, cardTransform]);
 
   // ===== Preload frame overlay image =====
   useEffect(() => {
