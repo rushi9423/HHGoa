@@ -13,8 +13,26 @@ export default function Home() {
   // ===== State =====
   const [activeTab, setActiveTab] = useState('pfp'); // 'pfp' | 'card'
   const [selectedStyle, setSelectedStyle] = useState('goa-palms');
-  const [uploadedPhoto, setUploadedPhoto] = useState(null);
-  const [photoTransform, setPhotoTransform] = useState({ offsetX: 0, offsetY: 0, scale: 1, rotation: 0 });
+  const [cardPhoto, setCardPhoto] = useState(null);
+  const [cardTransform, setCardTransform] = useState({ offsetX: 0, offsetY: 0, scale: 1, rotation: 0 });
+  const [framePhoto, setFramePhoto] = useState(null);
+  const [frameTransform, setFrameTransform] = useState({ offsetX: 0, offsetY: 0, scale: 1, rotation: 0 });
+
+  const uploadedPhoto = activeTab === 'card' ? cardPhoto : framePhoto;
+  const photoTransform = activeTab === 'card' ? cardTransform : frameTransform;
+
+  const setUploadedPhoto = (val) => {
+    if (activeTab === 'card') setCardPhoto(val);
+    else setFramePhoto(val);
+  };
+
+  const setPhotoTransform = (updater) => {
+    if (activeTab === 'card') {
+      setCardTransform(updater);
+    } else {
+      setFrameTransform(updater);
+    }
+  };
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [isDragOver, setIsDragOver] = useState(false);
