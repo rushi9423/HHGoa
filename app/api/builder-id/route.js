@@ -19,7 +19,7 @@ const redis = new Redis({
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { name, role, team, handle, builderClass, builderTitle, issuedDate } = body;
+    const { name, role, team, handle, builderClass, builderTitle, issuedDate, pfp } = body;
 
     // Validate environment variables first
     if (!process.env.UPSTASH_REDIS_REST_URL && !process.env.KV_REST_API_URL) {
@@ -54,6 +54,7 @@ export async function POST(request) {
       builderClass: builderClass || '',
       builderTitle: builderTitle || '',
       issuedDate: issuedDate || '',
+      pfp: pfp || '',
       createdAt: new Date().toISOString(),
     };
 

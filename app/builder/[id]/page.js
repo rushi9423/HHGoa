@@ -92,12 +92,22 @@ export default function BuilderProfilePage() {
             </div>
             
             {/* Main Content */}
-            <div className="p-6">
+            <div className="p-6 relative">
+              {/* Subtle background glow */}
+              <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl opacity-20 pointer-events-none"
+                style={{ background: 'var(--hhg-pink)' }} />
+
+              {record.pfp && (
+                <div className="w-20 h-20 mb-6 rounded-full border-2 border-white/20 overflow-hidden shadow-xl">
+                  <img src={record.pfp} alt="Profile" className="w-full h-full object-cover" />
+                </div>
+              )}
+
               <p className="text-xs uppercase tracking-[2px] opacity-50 mb-1"
                 style={{ fontFamily: '"Space Mono", monospace' }}>
                 Name
               </p>
-              <h2 className="text-3xl sm:text-4xl mb-6"
+              <h2 className="text-3xl sm:text-4xl mb-6 leading-none"
                 style={{ fontFamily: '"Anton", sans-serif', color: 'var(--hhg-cream)', letterSpacing: '1px' }}>
                 {record.name?.toUpperCase()}
               </h2>

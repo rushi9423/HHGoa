@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { FRAME_STYLES, ROLES, BRAND } from './lib/tokens';
-import { renderPFPFrame, renderBuilderCard, PFP_SIZE, CARD_WIDTH, CARD_HEIGHT } from './lib/canvas-renderer';
+import { renderPFPFrame, renderBuilderCard, PFP_SIZE, CARD_WIDTH, CARD_HEIGHT, generatePfpThumbnail } from './lib/canvas-renderer';
 import { processUploadedImage, calculateCoverFit } from './lib/image-utils';
 import { downloadCanvasAsPNG, shareCard, generateQRCode } from './lib/share';
 import { generateBuilderClass, generateBuilderTitle, getIssuedDate } from './lib/generator';
@@ -79,12 +79,15 @@ export default function Home() {
     if (!name || !role) return;
     setIsGeneratingId(true);
     try {
+      const pfpBase64 = uploadedPhoto ? generatePfpThumbnail(uploadedPhoto, photoTransform) : null;
+
       const res = await fetch('/api/builder-id', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name, role, team, handle,
           builderClass, builderTitle, issuedDate,
+          pfp: pfpBase64
         }),
       });
       const data = await res.json();

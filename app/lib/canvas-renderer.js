@@ -844,3 +844,22 @@ export function downloadCanvas(canvas, format = 'pfp') {
     URL.revokeObjectURL(url);
   }, 'image/png', 1.0);
 }
+
+/**
+ * Generate a small 200x200 thumbnail of the user's cropped photo for the database.
+ */
+export function generatePfpThumbnail(img, transform) {
+  if (!img) return null;
+  const canvas = document.createElement('canvas');
+  const size = 200;
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  
+  // The PFP slot is conceptually 1080x1080. 
+  // To get the exact same crop, we scale everything by 200/1080.
+  ctx.scale(200/1080, 200/1080);
+  drawTransformedImage(ctx, img, transform, 1080, 1080, 0, 0);
+  
+  return canvas.toDataURL('image/jpeg', 0.8);
+}

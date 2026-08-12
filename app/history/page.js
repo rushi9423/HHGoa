@@ -332,20 +332,33 @@ export default function HistoryPage() {
               <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl opacity-20 pointer-events-none"
                 style={{ background: 'var(--hhg-pink)' }} />
 
-              <div className="flex items-center gap-3 mb-4">
-                <span className="text-2xl font-bold"
-                  style={{ fontFamily: '"Space Mono", monospace', color: 'var(--hhg-pink)' }}>
-                  {selectedBuilder.formattedId}
-                </span>
-                <span className="pill-pink text-xs">
-                  {selectedBuilder.builderClass}
-                </span>
+              <div className="flex items-center gap-4 mb-6">
+                {selectedBuilder.pfp ? (
+                  <div className="w-16 h-16 shrink-0 rounded-full border-2 border-white/20 overflow-hidden shadow-xl">
+                    <img src={selectedBuilder.pfp} alt="Profile" className="w-full h-full object-cover" />
+                  </div>
+                ) : (
+                  <div className="w-16 h-16 shrink-0 rounded-full border-2 border-white/10 flex items-center justify-center bg-black/40 shadow-xl">
+                    <span className="text-2xl">👤</span>
+                  </div>
+                )}
+                
+                <div>
+                  <div className="flex items-center gap-3 mb-1">
+                    <span className="text-xl font-bold"
+                      style={{ fontFamily: '"Space Mono", monospace', color: 'var(--hhg-pink)' }}>
+                      {selectedBuilder.formattedId}
+                    </span>
+                    <span className="pill-pink text-xs">
+                      {selectedBuilder.builderClass}
+                    </span>
+                  </div>
+                  <h2 className="text-2xl sm:text-3xl leading-none"
+                    style={{ fontFamily: '"Anton", sans-serif', color: 'var(--hhg-cream)', letterSpacing: '1px' }}>
+                    {selectedBuilder.name?.toUpperCase()}
+                  </h2>
+                </div>
               </div>
-              
-              <h2 className="text-3xl sm:text-4xl mb-6"
-                style={{ fontFamily: '"Anton", sans-serif', color: 'var(--hhg-cream)', letterSpacing: '1px' }}>
-                {selectedBuilder.name?.toUpperCase()}
-              </h2>
 
               <div className="space-y-4">
                 <div className="bg-black/20 p-3 rounded-lg border border-white/5">
