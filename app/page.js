@@ -465,51 +465,59 @@ export default function Home() {
             </div>
 
             {/* Auto-generated preview + Generate ID button */}
-            {name && role && (
-              <div className="card-glass p-4 animate-fade-in">
-                <p className="text-xs tracking-[2px] uppercase opacity-40 mb-2"
-                  style={{ fontFamily: '"Space Mono", monospace', color: 'var(--hhg-yellow)' }}>
-                  Auto-Generated
-                </p>
-                <div className="flex flex-wrap gap-2 mb-3">
-                  <span className="pill-pink text-xs">{builderClass}</span>
-                  <span className="text-xs px-3 py-1.5 rounded-full border"
-                    style={{ borderColor: 'var(--hhg-yellow)', color: 'var(--hhg-yellow)', fontFamily: '"Space Mono", monospace' }}>
-                    {builderTitle}
-                  </span>
-                  {serverBuilderId && (
-                    <span className="text-xs px-3 py-1.5 rounded-full"
-                      style={{ background: 'rgba(245, 208, 32, 0.15)', color: 'var(--hhg-yellow)', fontFamily: '"Space Mono", monospace' }}>
-                      {serverBuilderId}
+            <div className="card-glass p-4 animate-fade-in mt-3">
+              <p className="text-xs tracking-[2px] uppercase opacity-40 mb-2"
+                style={{ fontFamily: '"Space Mono", monospace', color: 'var(--hhg-yellow)' }}>
+                Auto-Generated
+              </p>
+              <div className="flex flex-wrap gap-2 mb-3 min-h-[32px] items-center">
+                {name && role ? (
+                  <>
+                    <span className="pill-pink text-xs">{builderClass}</span>
+                    <span className="text-xs px-3 py-1.5 rounded-full border"
+                      style={{ borderColor: 'var(--hhg-yellow)', color: 'var(--hhg-yellow)', fontFamily: '"Space Mono", monospace' }}>
+                      {builderTitle}
                     </span>
-                  )}
-                </div>
-                {!idGenerated ? (
-                  <button
-                    className="btn-primary w-full"
-                    onClick={handleGenerateId}
-                    disabled={isGeneratingId}
-                    id="btn-generate-id"
-                  >
-                    {isGeneratingId ? (
-                      <span className="flex items-center justify-center gap-2">
-                        <span className="animate-spin inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full" />
-                        Generating...
-                      </span>
-                    ) : (
-                      '🎫 Generate Builder ID'
-                    )}
-                  </button>
+                  </>
                 ) : (
-                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg"
-                    style={{ background: 'rgba(16, 185, 129, 0.15)', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
-                    <span style={{ color: '#10b981', fontFamily: '"Space Mono", monospace', fontSize: '13px' }}>
-                      ✅ Builder ID {serverBuilderId} locked!
-                    </span>
-                  </div>
+                  <span className="text-xs opacity-50" style={{ fontFamily: '"Space Mono", monospace' }}>
+                    Fill out Name and Role to unlock
+                  </span>
+                )}
+                
+                {serverBuilderId && (
+                  <span className="text-xs px-3 py-1.5 rounded-full"
+                    style={{ background: 'rgba(245, 208, 32, 0.15)', color: 'var(--hhg-yellow)', fontFamily: '"Space Mono", monospace' }}>
+                    {serverBuilderId}
+                  </span>
                 )}
               </div>
-            )}
+              
+              {!idGenerated ? (
+                <button
+                  className={`btn-primary w-full ${!name || !role ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  onClick={handleGenerateId}
+                  disabled={isGeneratingId || !name || !role}
+                  id="btn-generate-id"
+                >
+                  {isGeneratingId ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <span className="animate-spin inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full" />
+                      Generating...
+                    </span>
+                  ) : (
+                    '🎫 Generate Builder ID'
+                  )}
+                </button>
+              ) : (
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg"
+                  style={{ background: 'rgba(16, 185, 129, 0.15)', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
+                  <span style={{ color: '#10b981', fontFamily: '"Space Mono", monospace', fontSize: '13px' }}>
+                    ✅ Builder ID {serverBuilderId} locked!
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
