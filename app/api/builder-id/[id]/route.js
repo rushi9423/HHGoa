@@ -8,7 +8,8 @@ const redis = new Redis({
 
 export async function GET(request, { params }) {
   try {
-    const { id } = params;
+    const resolvedParams = await params;
+    const id = resolvedParams?.id;
     
     if (!id) {
       return NextResponse.json({ error: 'ID is required' }, { status: 400 });
