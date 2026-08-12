@@ -1,5 +1,6 @@
 import { Redis } from '@upstash/redis';
 import { NextResponse } from 'next/server';
+import crypto from 'crypto';
 
 const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL,
@@ -11,8 +12,11 @@ export async function POST(request) {
     const body = await request.json();
     const { password } = body;
 
-    // Check admin password
-    if (password !== 'hhgoa2026') {
+    // Check admin password using SHA256 hash (expected password is 'hhgoa2548')
+    const expectedHash = 'c45ddd8c9794f0feacbd44adb2c6f4d8d8c97565158e044a129595eb36c1c9a2';
+    const providedHash = crypto.createHash('sha256').update(password || '').digest('hex');
+
+    if (providedHash !== expectedHash) {
       return NextResponse.json(
         { error: 'Incorrect Admin Password' },
         { status: 401 }
