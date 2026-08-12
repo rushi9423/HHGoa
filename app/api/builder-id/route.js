@@ -4,8 +4,8 @@ import { NextResponse } from 'next/server';
 // Initialize Redis client from environment variables
 // Vercel auto-sets KV_REST_API_URL and KV_REST_API_TOKEN when you connect a KV store
 const redis = new Redis({
-  url: process.env.KV_REST_API_URL,
-  token: process.env.KV_REST_API_TOKEN,
+  url: process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN,
 });
 
 /**
