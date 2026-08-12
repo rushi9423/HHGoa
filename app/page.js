@@ -57,6 +57,7 @@ export default function Home() {
 
   // Server-assigned sequential Builder ID
   const [serverBuilderId, setServerBuilderId] = useState('');
+  const [serverBuilderRawId, setServerBuilderRawId] = useState('');
   const [isGeneratingId, setIsGeneratingId] = useState(false);
   const [idGenerated, setIdGenerated] = useState(false);
 
@@ -89,6 +90,7 @@ export default function Home() {
       const data = await res.json();
       if (data.success) {
         setServerBuilderId(data.formattedId);
+        setServerBuilderRawId(data.id);
         setIdGenerated(true);
         showToast(`Builder ID ${data.formattedId} assigned! 🎉`);
       } else {
@@ -139,13 +141,15 @@ export default function Home() {
     };
   }, [renderCanvas]);
 
-  // Generate QR code when card fields change
+  // Generate QR code only after Builder ID is generated
   useEffect(() => {
-    if (activeTab === 'card' && name && role) {
-      const shareUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/share/preview`;
+    if (activeTab === 'card' && serverBuilderRawId) {
+      const shareUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/builder/${serverBuilderRawId}`;
       generateQRCode(shareUrl).then(setQrDataUrl);
+    } else {
+      setQrDataUrl('');
     }
-  }, [activeTab, name, role]);
+  }, [activeTab, serverBuilderRawId]);
 
   // ===== File upload handler =====
   const handleFileSelect = useCallback(async (file) => {

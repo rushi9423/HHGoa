@@ -21,6 +21,14 @@ export async function POST(request) {
     const body = await request.json();
     const { name, role, team, handle, builderClass, builderTitle, issuedDate } = body;
 
+    // Validate environment variables first
+    if (!process.env.UPSTASH_REDIS_REST_URL && !process.env.KV_REST_API_URL) {
+      return NextResponse.json(
+        { error: 'Database not connected. Please link Vercel KV or Upstash Redis in your Vercel Dashboard and REDEPLOY.' },
+        { status: 500 }
+      );
+    }
+
     // Validate required fields
     if (!name || !role) {
       return NextResponse.json(
