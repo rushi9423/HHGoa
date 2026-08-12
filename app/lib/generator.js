@@ -71,22 +71,16 @@ export function generateBuilderTitle(name, role) {
 }
 
 /**
- * Generate Builder ID number (deterministic 4-digit from name + role)
- * Format: #HH-GOA-XXXX
+ * Generate Builder ID number — NOW HANDLED SERVER-SIDE via /api/builder-id
+ * These are kept as stubs for backward compatibility but should not be used.
+ * The real sequential ID comes from the API.
  */
-export function generateBuilderId(name, role) {
-  const seed = seedFromInput(name, role);
-  const num = seed % 10000;
-  return `HHG-${num.toString().padStart(4, '0')}`;
+export function generateBuilderId() {
+  return ''; // Server-assigned
 }
 
-/**
- * Generate short Builder ID for display
- */
-export function generateShortId(name, role) {
-  const seed = seedFromInput(name, role);
-  const num = seed % 10000;
-  return `HHG-${num.toString().padStart(4, '0')}`;
+export function generateShortId() {
+  return ''; // Server-assigned
 }
 
 /**
@@ -101,3 +95,4 @@ export function getIssuedDate() {
   const year = d.getFullYear();
   return `${day} ${month} ${year}`;
 }
+

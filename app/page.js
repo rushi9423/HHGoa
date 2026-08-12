@@ -5,7 +5,7 @@ import { FRAME_STYLES, ROLES, BRAND } from './lib/tokens';
 import { renderPFPFrame, renderBuilderCard, PFP_SIZE, CARD_WIDTH, CARD_HEIGHT } from './lib/canvas-renderer';
 import { processUploadedImage, calculateCoverFit } from './lib/image-utils';
 import { downloadCanvasAsPNG, shareCard, generateQRCode } from './lib/share';
-import { generateBuilderClass, generateBuilderTitle, generateBuilderId, generateShortId, getIssuedDate } from './lib/generator';
+import { generateBuilderClass, generateBuilderTitle, getIssuedDate } from './lib/generator';
 
 export default function Home() {
   // Track frame overlay image loading
@@ -55,11 +55,16 @@ export default function Home() {
 
   const [customBuilderTitle, setCustomBuilderTitle] = useState('');
 
+  // Server-assigned sequential Builder ID
+  const [serverBuilderId, setServerBuilderId] = useState('');
+  const [isGeneratingId, setIsGeneratingId] = useState(false);
+  const [idGenerated, setIdGenerated] = useState(false);
+
   // Auto-generate fields based on name and role
   const builderClass = name && role ? generateBuilderClass(name, role) : '';
   const builderTitle = customBuilderTitle || (name && role ? generateBuilderTitle(name, role) : '');
-  const builderId = name && role ? generateBuilderId(name, role) : '';
-  const shortId = name && role ? generateShortId(name, role) : '';
+  const builderId = serverBuilderId; // Now from server
+  const shortId = serverBuilderId;
   const issuedDate = getIssuedDate();
 
   // ===== Toast helper =====
@@ -67,6 +72,34 @@ export default function Home() {
     setToast(msg);
     setTimeout(() => setToast(''), 3000);
   }, []);
+
+  // Generate Builder ID via API
+  const handleGenerateId = useCallback(async () => {
+    if (!name || !role) return;
+    setIsGeneratingId(true);
+    try {
+      const res = await fetch('/api/builder-id', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name, role, team, handle,
+          builderClass, builderTitle, issuedDate,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setServerBuilderId(data.formattedId);
+        setIdGenerated(true);
+        showToast(`Builder ID ${data.formattedId} assigned! 🎉`);
+      } else {
+        showToast(data.error || 'Failed to generate ID');
+      }
+    } catch (err) {
+      showToast('Network error. Please try again.');
+    } finally {
+      setIsGeneratingId(false);
+    }
+  }, [name, role, team, handle, builderClass, builderTitle, issuedDate, showToast]);
 
   // ===== Preload frame overlay image =====
   useEffect(() => {
@@ -316,6 +349,17 @@ export default function Home() {
           {BRAND.event.location}  ·  {BRAND.event.dates}
         </p>
 
+        {/* History link */}
+        <a href="/history" className="relative z-10 inline-flex items-center gap-1.5 mt-3 px-4 py-1.5 rounded-full text-xs tracking-[2px] uppercase transition-all hover:scale-105"
+          style={{
+            fontFamily: '"Space Mono", monospace',
+            color: 'var(--hhg-cream)',
+            background: 'rgba(246, 239, 224, 0.08)',
+            border: '1px solid rgba(246, 239, 224, 0.15)',
+          }}>
+          📋 View Builder History
+        </a>
+
         {/* Year */}
         <p className="text-6xl sm:text-7xl font-bold opacity-5 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
           style={{ fontFamily: '"Anton", sans-serif' }}>
@@ -411,24 +455,50 @@ export default function Home() {
               />
             </div>
 
-            {/* Auto-generated preview */}
+            {/* Auto-generated preview + Generate ID button */}
             {name && role && (
               <div className="card-glass p-4 animate-fade-in">
                 <p className="text-xs tracking-[2px] uppercase opacity-40 mb-2"
                   style={{ fontFamily: '"Space Mono", monospace', color: 'var(--hhg-yellow)' }}>
                   Auto-Generated
                 </p>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2 mb-3">
                   <span className="pill-pink text-xs">{builderClass}</span>
                   <span className="text-xs px-3 py-1.5 rounded-full border"
                     style={{ borderColor: 'var(--hhg-yellow)', color: 'var(--hhg-yellow)', fontFamily: '"Space Mono", monospace' }}>
                     {builderTitle}
                   </span>
-                  <span className="text-xs px-3 py-1.5 rounded-full"
-                    style={{ background: 'rgba(245, 208, 32, 0.15)', color: 'var(--hhg-yellow)', fontFamily: '"Space Mono", monospace' }}>
-                    {shortId}
-                  </span>
+                  {serverBuilderId && (
+                    <span className="text-xs px-3 py-1.5 rounded-full"
+                      style={{ background: 'rgba(245, 208, 32, 0.15)', color: 'var(--hhg-yellow)', fontFamily: '"Space Mono", monospace' }}>
+                      {serverBuilderId}
+                    </span>
+                  )}
                 </div>
+                {!idGenerated ? (
+                  <button
+                    className="btn-primary w-full"
+                    onClick={handleGenerateId}
+                    disabled={isGeneratingId}
+                    id="btn-generate-id"
+                  >
+                    {isGeneratingId ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <span className="animate-spin inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full" />
+                        Generating...
+                      </span>
+                    ) : (
+                      '🎫 Generate Builder ID'
+                    )}
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg"
+                    style={{ background: 'rgba(16, 185, 129, 0.15)', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
+                    <span style={{ color: '#10b981', fontFamily: '"Space Mono", monospace', fontSize: '13px' }}>
+                      ✅ Builder ID {serverBuilderId} locked!
+                    </span>
+                  </div>
+                )}
               </div>
             )}
           </div>
