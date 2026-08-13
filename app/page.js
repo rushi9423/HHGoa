@@ -96,6 +96,38 @@ export default function Home() {
       if (data.success) {
         setServerBuilderId(data.formattedId);
         setServerBuilderRawId(data.id);
+        
+        // Render the full card locally to upload for Twitter preview
+        setTimeout(async () => {
+          try {
+            const exportCanvas = document.createElement('canvas');
+            const exportCtx = exportCanvas.getContext('2d');
+            
+            renderBuilderCard(exportCanvas, uploadedPhoto, photoTransform, {
+              name, role, team, handle,
+              builderClass, builderTitle, builderId: data.formattedId,
+              issuedDate, qrDataUrl: '', // QR not needed for OG preview
+            });
+
+            // Scale down by 50% (540x675) to ensure it stays well under the 1MB Redis payload limit
+            const scaleCanvas = document.createElement('canvas');
+            scaleCanvas.width = exportCanvas.width / 2;
+            scaleCanvas.height = exportCanvas.height / 2;
+            const sCtx = scaleCanvas.getContext('2d');
+            sCtx.drawImage(exportCanvas, 0, 0, scaleCanvas.width, scaleCanvas.height);
+            
+            const cardImageBase64 = scaleCanvas.toDataURL('image/jpeg', 0.8);
+            
+            await fetch(`/api/builder-id/${data.id}/image`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ cardImage: cardImageBase64 })
+            });
+          } catch (e) {
+            console.warn('Failed to upload OG image', e);
+          }
+        }, 50);
+
         setIdGenerated(true);
         showToast(`Builder ID ${data.formattedId} assigned! 🎉`);
       } else {

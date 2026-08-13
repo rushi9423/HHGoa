@@ -61,6 +61,17 @@ export async function generateMetadata({ params }) {
   const title = `${record.name} — Hacker House Goa 2026 Builder ${record.formattedId}`;
   const description = `${record.formattedId} · ${record.builderClass} · ${record.role} Builder. ${record.builderTitle || ''} #HackerHouseGoa #HHGoa2026`.trim();
 
+  // Construct absolute base URL for Open Graph images
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL 
+    ? process.env.NEXT_PUBLIC_BASE_URL.replace(/\/+$/, '') 
+    : (process.env.VERCEL_PROJECT_PRODUCTION_URL 
+      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` 
+      : (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://hhgoa.vercel.app'));
+
+  const imageUrl = record.cardImage 
+    ? `${baseUrl}/api/builder-id/${id}/image` 
+    : `${baseUrl}/og-image.png`;
+
   return {
     title,
     description,
@@ -69,15 +80,13 @@ export async function generateMetadata({ params }) {
       description,
       type: 'website',
       siteName: 'HH Goa 2026',
-      // Note: og:image uses the static branded image because X crawlers
-      // cannot access base64 data URLs stored in Redis.
-      images: [{ url: '/og-image.png', width: 1200, height: 630, alt: title }],
+      images: [{ url: imageUrl, width: record.cardImage ? 540 : 1200, height: record.cardImage ? 675 : 630, alt: title }],
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description,
-      images: ['/og-image.png'],
+      images: [imageUrl],
     },
   };
 }
