@@ -658,7 +658,7 @@ export default function Home() {
         <button
           className="btn-primary flex-1"
           onClick={handleDownload}
-          disabled={!uploadedPhoto && activeTab === 'pfp'}
+          disabled={!uploadedPhoto || (activeTab === 'card' && !idGenerated)}
           id="btn-download"
         >
           ⬇️ Download PNG
@@ -666,7 +666,7 @@ export default function Home() {
         <button
           className="btn-pink flex-1"
           onClick={handleShare}
-          disabled={!uploadedPhoto && activeTab === 'pfp'}
+          disabled={!uploadedPhoto || (activeTab === 'card' && !idGenerated)}
           id="btn-share"
         >
           🐦 Share to X
