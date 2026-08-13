@@ -648,17 +648,20 @@ export function renderBuilderCard(canvas, photo, photoTransform, fields) {
   curY += 72;
   drawDivider(idX, curY, idMaxW);
 
-  // "NOTORIOUS" — builder class
+  // NAME (Previously Builder Class)
   curY += 14;
   ctx.save();
   ctx.font = '900 34px "Anton", sans-serif';
   ctx.fillStyle = DARK_GREEN;
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
-  ctx.fillText((builderClass || 'BUILDER').toUpperCase(), idX, curY);
+  
+  // Use drawFittedText or just normal fillText. Let's handle long names.
+  // Actually, we'll just do fillText as requested, similar to builderClass.
+  ctx.fillText((name || 'BUILDER').toUpperCase(), idX, curY);
   ctx.restore();
 
-  // "CYBERSECURITY BUILDER" — role subtitle
+  // ROLE SUBTITLE
   curY += 40;
   ctx.save();
   ctx.font = 'bold 15px "Space Mono", monospace';
@@ -667,6 +670,18 @@ export function renderBuilderCard(canvas, photo, photoTransform, fields) {
   ctx.textBaseline = 'top';
   ctx.fillText(role ? `${role.toUpperCase()} BUILDER` : '', idX, curY);
   ctx.restore();
+
+  // X HANDLE
+  if (handle) {
+    curY += 20;
+    ctx.save();
+    ctx.font = 'bold 15px "Space Mono", monospace';
+    ctx.fillStyle = DARK_GREEN;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillText(handle.startsWith('@') ? handle : `@${handle}`, idX, curY);
+    ctx.restore();
+  }
 
   curY += 28;
   drawDivider(idX, curY, idMaxW);
