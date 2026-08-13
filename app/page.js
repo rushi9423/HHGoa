@@ -4,7 +4,7 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { FRAME_STYLES, ROLES, BRAND } from './lib/tokens';
 import { renderPFPFrame, renderBuilderCard, PFP_SIZE, CARD_WIDTH, CARD_HEIGHT, generatePfpThumbnail } from './lib/canvas-renderer';
 import { processUploadedImage, calculateCoverFit } from './lib/image-utils';
-import { downloadCanvasAsPNG, shareCard, generateQRCode } from './lib/share';
+import { downloadCanvasAsPNG, shareFrame, shareBuilderCard, generateQRCode } from './lib/share';
 import { generateBuilderClass, generateBuilderTitle, getIssuedDate } from './lib/generator';
 
 export default function Home() {
@@ -303,17 +303,18 @@ export default function Home() {
 
     if (activeTab === 'pfp') {
       renderPFPFrame(exportCtx, exportCanvas, uploadedPhoto, selectedStyle, photoTransform);
+      await shareFrame(exportCanvas);
     } else {
       renderBuilderCard(exportCanvas, uploadedPhoto, photoTransform, {
         name, role, team, handle,
         builderClass, builderTitle, builderId,
         issuedDate, qrDataUrl,
       });
+      await shareBuilderCard(exportCanvas, serverBuilderRawId);
     }
 
-    await shareCard(exportCanvas, handle, activeTab);
     showToast('Shared! 🚀');
-  }, [activeTab, uploadedPhoto, selectedStyle, photoTransform, name, role, team, handle, builderClass, builderTitle, builderId, issuedDate, qrDataUrl, showToast]);
+  }, [activeTab, uploadedPhoto, selectedStyle, photoTransform, name, role, team, handle, builderClass, builderTitle, builderId, issuedDate, qrDataUrl, showToast, serverBuilderRawId]);
 
   // ===== Preview canvas size for display =====
   const previewAspect = activeTab === 'pfp' ? 1 : CARD_HEIGHT / CARD_WIDTH;

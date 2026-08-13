@@ -26,16 +26,26 @@ export const metadata = {
   title: "HH Goa 2026 — Frame Generator & Builder ID Card",
   description: "Generate your HH Goa 2026 PFP frame or Builder ID card. Upload your photo, choose a style, and share to X in seconds. #FrameInGoa",
   keywords: ["Hacker House", "Goa", "2026", "HH Goa", "PFP", "Frame Generator", "Builder ID", "Hackathon"],
+  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://hhgoa.vercel.app'),
   openGraph: {
-    title: "HH Goa 2026 — Frame Generator",
-    description: "Generate your HH Goa 2026 PFP frame or Builder ID card. #FrameInGoa",
+    title: "HH Goa 2026 — Frame Generator & Builder ID",
+    description: "Generate your Hacker House Goa 2026 PFP frame or Builder ID card. Upload your photo, choose a style, and share to X. #FrameInGoa #HackerHouseGoa",
     type: "website",
     siteName: "HH Goa 2026",
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Hacker House Goa 2026 — Frame Generator & Builder ID',
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "HH Goa 2026 — Frame Generator",
-    description: "Generate your HH Goa 2026 PFP frame or Builder ID card. #FrameInGoa",
+    title: "HH Goa 2026 — Frame Generator & Builder ID",
+    description: "Generate your Hacker House Goa 2026 PFP frame or Builder ID card. #FrameInGoa #HackerHouseGoa",
+    images: ['/og-image.png'],
   },
 };
 

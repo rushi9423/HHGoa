@@ -1,195 +1,88 @@
-'use client';
+/**
+ * Builder profile page — /builder/[id]
+ * Server component with dynamic OG metadata for social previews.
+ * The profile UI is rendered by the BuilderProfileClient component.
+ */
 
-import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
-import { BRAND } from '../../lib/tokens';
+import { Redis } from '@upstash/redis';
+import BuilderProfileClient from './BuilderProfileClient';
 
-export default function BuilderProfilePage() {
-  const params = useParams();
-  const id = params?.id;
-  
-  const [record, setRecord] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+// Initialize Redis client
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN,
+});
 
-  useEffect(() => {
-    if (!id) return;
-    
-    async function fetchRecord() {
-      try {
-        const res = await fetch(`/api/builder-id/${id}`);
-        const data = await res.json();
-        
-        if (data.error) {
-          setError(data.error);
-        } else {
-          setRecord(data);
-        }
-      } catch (err) {
-        setError('Network error. Please try again.');
-      } finally {
-        setLoading(false);
-      }
+/**
+ * Fetch builder record from Redis (server-side)
+ */
+async function getBuilderRecord(id) {
+  try {
+    if (!process.env.UPSTASH_REDIS_REST_URL && !process.env.KV_REST_API_URL) {
+      return null;
     }
-    
-    fetchRecord();
-  }, [id]);
+    const data = await redis.get(`builder:${id}`);
+    if (!data) return null;
+    return typeof data === 'string' ? JSON.parse(data) : data;
+  } catch (e) {
+    console.error('Error fetching builder for metadata:', e);
+    return null;
+  }
+}
 
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4">
-      {/* Background Glows */}
-      <div className="absolute inset-0 opacity-20 pointer-events-none overflow-hidden">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full blur-3xl"
-          style={{ background: 'radial-gradient(circle, var(--hhg-yellow) 0%, transparent 70%)' }} />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full blur-3xl"
-          style={{ background: 'radial-gradient(circle, var(--hhg-pink) 0%, transparent 70%)' }} />
-      </div>
+/**
+ * Dynamic OG metadata for the builder profile page.
+ * X/Twitter crawlers will see this when the /builder/[id] URL is shared.
+ */
+export async function generateMetadata({ params }) {
+  const { id } = await params;
+  const record = await getBuilderRecord(id);
 
-      <div className="w-full max-w-md relative z-10 animate-fade-in-up">
-        {/* Header Logo */}
-        <div className="flex items-center justify-center gap-2 mb-8">
-          <h1 className="text-2xl sm:text-3xl tracking-wider"
-            style={{ fontFamily: '"Anton", sans-serif', color: 'var(--hhg-cream)' }}>
-            HACKER HOUSE
-          </h1>
-          <span className="inline-flex items-center px-3 py-1 rounded-full text-white text-sm shadow-xl"
-            style={{ background: 'var(--hhg-pink)', fontFamily: '"Noto Sans Devanagari", sans-serif', fontWeight: 700 }}>
-            गोवा
-          </span>
-        </div>
+  if (!record) {
+    return {
+      title: 'Builder Not Found — HH Goa 2026',
+      description: 'This builder profile could not be found.',
+      openGraph: {
+        title: 'Builder Not Found — HH Goa 2026',
+        description: 'This builder profile could not be found.',
+        type: 'website',
+        siteName: 'HH Goa 2026',
+        images: [{ url: '/og-image.png', width: 1200, height: 630 }],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: 'Builder Not Found — HH Goa 2026',
+        description: 'This builder profile could not be found.',
+        images: ['/og-image.png'],
+      },
+    };
+  }
 
-        {loading ? (
-          <div className="card-glass p-8 flex flex-col items-center gap-4">
-            <div className="animate-spin inline-block w-8 h-8 border-4 border-current border-t-transparent rounded-full" style={{ color: 'var(--hhg-yellow)' }} />
-            <p className="text-sm opacity-60" style={{ fontFamily: '"Space Mono", monospace' }}>Loading profile...</p>
-          </div>
-        ) : error ? (
-          <div className="card-glass p-8 text-center" style={{ borderColor: 'rgba(239, 68, 68, 0.3)' }}>
-            <p className="text-4xl mb-3">⚠️</p>
-            <p className="text-lg mb-2" style={{ fontFamily: '"Anton", sans-serif', color: '#ef4444' }}>
-              Error Loading Builder
-            </p>
-            <p className="text-sm opacity-70" style={{ fontFamily: '"Space Mono", monospace' }}>
-              {error}
-            </p>
-            <a href="/" className="btn-primary mt-6 inline-flex">Return Home</a>
-          </div>
-        ) : record ? (
-          <div className="card-glass overflow-hidden relative">
-            {/* Top Bar */}
-            <div className="bg-white/5 px-6 py-4 border-b border-white/10 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="text-xl">✅</span>
-                <span className="text-xs tracking-[2px] uppercase opacity-80"
-                  style={{ fontFamily: '"Space Mono", monospace', color: 'var(--hhg-yellow)' }}>
-                  Verified Builder
-                </span>
-              </div>
-              <span className="text-xl font-bold"
-                style={{ fontFamily: '"Space Mono", monospace', color: 'var(--hhg-pink)' }}>
-                {record.formattedId}
-              </span>
-            </div>
-            
-            {/* Main Content */}
-            <div className="p-6 relative">
-              {/* Subtle background glow */}
-              <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl opacity-20 pointer-events-none"
-                style={{ background: 'var(--hhg-pink)' }} />
+  const title = `${record.name} — Hacker House Goa 2026 Builder ${record.formattedId}`;
+  const description = `${record.formattedId} · ${record.builderClass} · ${record.role} Builder. ${record.builderTitle || ''} #HackerHouseGoa #HHGoa2026`.trim();
 
-              {record.pfp && (
-                <div className="w-20 h-20 mb-6 rounded-full border-2 border-white/20 overflow-hidden shadow-xl">
-                  <img src={record.pfp} alt="Profile" className="w-full h-full object-cover" />
-                </div>
-              )}
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: 'website',
+      siteName: 'HH Goa 2026',
+      // Note: og:image uses the static branded image because X crawlers
+      // cannot access base64 data URLs stored in Redis.
+      images: [{ url: '/og-image.png', width: 1200, height: 630, alt: title }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: ['/og-image.png'],
+    },
+  };
+}
 
-              <p className="text-xs uppercase tracking-[2px] opacity-50 mb-1"
-                style={{ fontFamily: '"Space Mono", monospace' }}>
-                Name
-              </p>
-              <h2 className="text-3xl sm:text-4xl mb-6 leading-none"
-                style={{ fontFamily: '"Anton", sans-serif', color: 'var(--hhg-cream)', letterSpacing: '1px' }}>
-                {record.name?.toUpperCase()}
-              </h2>
-
-              <div className="grid grid-cols-2 gap-6 mb-6">
-                <div>
-                  <p className="text-xs uppercase tracking-[2px] opacity-50 mb-1"
-                    style={{ fontFamily: '"Space Mono", monospace' }}>
-                    Class
-                  </p>
-                  <span className="pill-pink text-xs inline-block">
-                    {record.builderClass}
-                  </span>
-                </div>
-                <div>
-                  <p className="text-xs uppercase tracking-[2px] opacity-50 mb-1"
-                    style={{ fontFamily: '"Space Mono", monospace' }}>
-                    Title
-                  </p>
-                  <p className="text-sm font-bold"
-                    style={{ fontFamily: '"Space Mono", monospace', color: 'var(--hhg-yellow)' }}>
-                    {record.builderTitle}
-                  </p>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div className="bg-black/20 p-4 rounded-xl border border-white/5">
-                  <p className="text-xs uppercase tracking-[2px] opacity-50 mb-1"
-                    style={{ fontFamily: '"Space Mono", monospace' }}>
-                    Role
-                  </p>
-                  <p className="text-base" style={{ fontFamily: '"Space Mono", monospace' }}>
-                    {record.role}
-                  </p>
-                </div>
-                
-                {record.team && (
-                  <div className="bg-black/20 p-4 rounded-xl border border-white/5">
-                    <p className="text-xs uppercase tracking-[2px] opacity-50 mb-1"
-                      style={{ fontFamily: '"Space Mono", monospace' }}>
-                      Team
-                    </p>
-                    <p className="text-base" style={{ fontFamily: '"Space Mono", monospace' }}>
-                      {record.team}
-                    </p>
-                  </div>
-                )}
-                
-                {record.handle && (
-                  <div className="bg-black/20 p-4 rounded-xl border border-white/5">
-                    <p className="text-xs uppercase tracking-[2px] opacity-50 mb-1"
-                      style={{ fontFamily: '"Space Mono", monospace' }}>
-                      X Handle
-                    </p>
-                    <p className="text-base" style={{ fontFamily: '"Space Mono", monospace', color: 'var(--hhg-yellow)' }}>
-                      @{record.handle}
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div className="bg-black/30 px-6 py-4 mt-2 text-center border-t border-white/5">
-              <p className="text-xs opacity-40 mb-1" style={{ fontFamily: '"Space Mono", monospace' }}>
-                Issued: {record.issuedDate}
-              </p>
-              <p className="text-[10px] uppercase tracking-[3px] opacity-20"
-                style={{ fontFamily: '"Space Mono", monospace' }}>
-                {BRAND.event.name}
-              </p>
-            </div>
-          </div>
-        ) : null}
-      </div>
-      
-      {/* Create your own button */}
-      <a href="/" className="relative z-10 mt-8 text-xs tracking-[2px] uppercase opacity-60 hover:opacity-100 transition-opacity"
-        style={{ fontFamily: '"Space Mono", monospace' }}>
-        Create your own Builder ID →
-      </a>
-    </div>
-  );
+export default async function BuilderProfilePage({ params }) {
+  const { id } = await params;
+  return <BuilderProfileClient id={id} />;
 }
