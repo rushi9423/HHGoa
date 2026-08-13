@@ -586,59 +586,61 @@ export default function Home() {
         </div>
 
         {/* Auto-generated preview + Generate ID button */}
-        <div className="card-glass p-4 animate-fade-in mb-6">
-          <p className="text-xs tracking-[2px] uppercase opacity-40 mb-2"
-            style={{ fontFamily: '"Space Mono", monospace', color: 'var(--hhg-yellow)' }}>
-            Auto-Generated
-          </p>
-          <div className="flex flex-wrap gap-2 mb-3 min-h-[32px] items-center">
-            {name && uploadedPhoto && team ? (
-              <>
-                <span className="pill-pink text-xs">{builderClass}</span>
-                <span className="text-xs px-3 py-1.5 rounded-full border"
-                  style={{ borderColor: 'var(--hhg-yellow)', color: 'var(--hhg-yellow)', fontFamily: '"Space Mono", monospace' }}>
-                  {builderTitle}
+        {activeTab === 'card' && (
+          <div className="card-glass p-4 animate-fade-in mb-6">
+            <p className="text-xs tracking-[2px] uppercase opacity-40 mb-2"
+              style={{ fontFamily: '"Space Mono", monospace', color: 'var(--hhg-yellow)' }}>
+              Auto-Generated
+            </p>
+            <div className="flex flex-wrap gap-2 mb-3 min-h-[32px] items-center">
+              {name && uploadedPhoto && team ? (
+                <>
+                  <span className="pill-pink text-xs">{builderClass}</span>
+                  <span className="text-xs px-3 py-1.5 rounded-full border"
+                    style={{ borderColor: 'var(--hhg-yellow)', color: 'var(--hhg-yellow)', fontFamily: '"Space Mono", monospace' }}>
+                    {builderTitle}
+                  </span>
+                </>
+              ) : (
+                <span className="text-xs opacity-50" style={{ fontFamily: '"Space Mono", monospace' }}>
+                  Fill out Name, Photo, and Team to unlock
                 </span>
-              </>
-            ) : (
-              <span className="text-xs opacity-50" style={{ fontFamily: '"Space Mono", monospace' }}>
-                Fill out Name, Photo, and Team to unlock
-              </span>
-            )}
+              )}
+              
+              {serverBuilderId && (
+                <span className="text-xs px-3 py-1.5 rounded-full"
+                  style={{ background: 'rgba(245, 208, 32, 0.15)', color: 'var(--hhg-yellow)', fontFamily: '"Space Mono", monospace' }}>
+                  {serverBuilderId}
+                </span>
+              )}
+            </div>
             
-            {serverBuilderId && (
-              <span className="text-xs px-3 py-1.5 rounded-full"
-                style={{ background: 'rgba(245, 208, 32, 0.15)', color: 'var(--hhg-yellow)', fontFamily: '"Space Mono", monospace' }}>
-                {serverBuilderId}
-              </span>
+            {!idGenerated ? (
+              <button
+                className={`btn-primary w-full ${!name || !uploadedPhoto || !team ? 'opacity-50 cursor-not-allowed' : ''}`}
+                onClick={handleGenerateId}
+                disabled={isGeneratingId || !name || !uploadedPhoto || !team}
+                id="btn-generate-id"
+              >
+                {isGeneratingId ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <span className="animate-spin inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full" />
+                    Generating...
+                  </span>
+                ) : (
+                  '🎫 Generate Builder ID'
+                )}
+              </button>
+            ) : (
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg"
+                style={{ background: 'rgba(16, 185, 129, 0.15)', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
+                <span style={{ color: '#10b981', fontFamily: '"Space Mono", monospace', fontSize: '13px' }}>
+                  ✅ Builder ID {serverBuilderId} locked!
+                </span>
+              </div>
             )}
           </div>
-          
-          {!idGenerated ? (
-            <button
-              className={`btn-primary w-full ${!name || !uploadedPhoto || !team ? 'opacity-50 cursor-not-allowed' : ''}`}
-              onClick={handleGenerateId}
-              disabled={isGeneratingId || !name || !uploadedPhoto || !team}
-              id="btn-generate-id"
-            >
-              {isGeneratingId ? (
-                <span className="flex items-center justify-center gap-2">
-                  <span className="animate-spin inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full" />
-                  Generating...
-                </span>
-              ) : (
-                '🎫 Generate Builder ID'
-              )}
-            </button>
-          ) : (
-            <div className="flex items-center gap-2 px-3 py-2 rounded-lg"
-              style={{ background: 'rgba(16, 185, 129, 0.15)', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
-              <span style={{ color: '#10b981', fontFamily: '"Space Mono", monospace', fontSize: '13px' }}>
-                ✅ Builder ID {serverBuilderId} locked!
-              </span>
-            </div>
-          )}
-        </div>
+        )}
 
         {/* Hidden file input for re-upload */}
         <input
