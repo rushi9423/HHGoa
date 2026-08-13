@@ -139,11 +139,15 @@ export async function shareFrame(canvas) {
   const shareUrl = getFrameShareUrl();
   const fullCaption = FRAME_SHARE_CAPTION;
 
-  // Try native share first (mobile — can attach the actual image)
-  const nativeShared = await nativeShareWithFile(canvas, `${fullCaption}\n\n${shareUrl}`);
-  if (nativeShared) return;
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-  // Fallback: Twitter intent (text + URL, no image attachment possible)
+  if (isMobile) {
+    // Try native share first (mobile — can attach the actual image)
+    const nativeShared = await nativeShareWithFile(canvas, `${fullCaption}\n\n${shareUrl}`);
+    if (nativeShared) return;
+  }
+
+  // Fallback / Desktop: Twitter intent (text + URL, no image attachment possible)
   shareToTwitter(fullCaption, shareUrl);
 }
 
@@ -162,11 +166,15 @@ export async function shareBuilderCard(canvas, builderRawId) {
   const shareUrl = getBuilderIdShareUrl(builderRawId);
   const fullCaption = BUILDER_ID_SHARE_CAPTION;
 
-  // Try native share first (mobile — can attach the actual image)
-  const nativeShared = await nativeShareWithFile(canvas, `${fullCaption}\n\n${shareUrl}`);
-  if (nativeShared) return;
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-  // Fallback: Twitter intent (text + URL, no image attachment possible)
+  if (isMobile) {
+    // Try native share first (mobile — can attach the actual image)
+    const nativeShared = await nativeShareWithFile(canvas, `${fullCaption}\n\n${shareUrl}`);
+    if (nativeShared) return;
+  }
+
+  // Fallback / Desktop: Twitter intent (text + URL, no image attachment possible)
   shareToTwitter(fullCaption, shareUrl);
 }
 
