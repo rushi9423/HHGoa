@@ -134,9 +134,10 @@ async function nativeShareWithFile(canvas, captionText) {
  * Desktop: falls back to X intent URL (text + URL only).
  *
  * @param {HTMLCanvasElement} canvas - The rendered frame canvas
+ * @param {string|number} [frameId] - Optional uploaded frame ID for unique URL
  */
-export async function shareFrame(canvas) {
-  const shareUrl = getFrameShareUrl();
+export async function shareFrame(canvas, frameId) {
+  const shareUrl = frameId ? `${getBaseUrl()}/frame/${frameId}` : getFrameShareUrl();
   const fullCaption = FRAME_SHARE_CAPTION;
 
   const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);

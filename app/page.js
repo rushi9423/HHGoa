@@ -60,6 +60,7 @@ export default function Home() {
   const [serverBuilderRawId, setServerBuilderRawId] = useState('');
   const [isGeneratingId, setIsGeneratingId] = useState(false);
   const [idGenerated, setIdGenerated] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
 
   // Auto-generate fields based on name and role
   const builderClass = name && role ? generateBuilderClass(name, role) : '';
@@ -329,23 +330,53 @@ export default function Home() {
     const canvas = previewCanvasRef.current;
     if (!canvas) return;
 
-    // Render export canvas
-    const exportCanvas = document.createElement('canvas');
-    const exportCtx = exportCanvas.getContext('2d');
+    setIsSharing(true);
+    try {
+      // Render export canvas
+      const exportCanvas = document.createElement('canvas');
+      const exportCtx = exportCanvas.getContext('2d');
 
-    if (activeTab === 'pfp') {
-      renderPFPFrame(exportCtx, exportCanvas, uploadedPhoto, selectedStyle, photoTransform);
-      await shareFrame(exportCanvas);
-    } else {
-      renderBuilderCard(exportCanvas, uploadedPhoto, photoTransform, {
-        name, role, team, handle,
-        builderClass, builderTitle, builderId,
-        issuedDate, qrDataUrl,
-      });
-      await shareBuilderCard(exportCanvas, serverBuilderRawId);
+      if (activeTab === 'pfp') {
+        renderPFPFrame(exportCtx, exportCanvas, uploadedPhoto, selectedStyle, photoTransform);
+        
+        // Upload Frame to get an ID for unique Twitter URL
+        let frameId = null;
+        try {
+          const scaleCanvas = document.createElement('canvas');
+          scaleCanvas.width = exportCanvas.width / 2;
+          scaleCanvas.height = exportCanvas.height / 2;
+          const sCtx = scaleCanvas.getContext('2d');
+          sCtx.drawImage(exportCanvas, 0, 0, scaleCanvas.width, scaleCanvas.height);
+          
+          const frameImageBase64 = scaleCanvas.toDataURL('image/jpeg', 0.8);
+          
+          const res = await fetch('/api/frame', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ frameImage: frameImageBase64 })
+          });
+          const data = await res.json();
+          if (data.success) {
+            frameId = data.id;
+          }
+        } catch (e) {
+          console.warn('Failed to upload Frame for OG preview', e);
+        }
+
+        await shareFrame(exportCanvas, frameId);
+      } else {
+        renderBuilderCard(exportCanvas, uploadedPhoto, photoTransform, {
+          name, role, team, handle,
+          builderClass, builderTitle, builderId,
+          issuedDate, qrDataUrl,
+        });
+        await shareBuilderCard(exportCanvas, serverBuilderRawId);
+      }
+
+      showToast('Shared! 🚀');
+    } finally {
+      setIsSharing(false);
     }
-
-    showToast('Shared! 🚀');
   }, [activeTab, uploadedPhoto, selectedStyle, photoTransform, name, role, team, handle, builderClass, builderTitle, builderId, issuedDate, qrDataUrl, showToast, serverBuilderRawId]);
 
   // ===== Preview canvas size for display =====
@@ -699,10 +730,10 @@ export default function Home() {
         <button
           className="btn-pink flex-1"
           onClick={handleShare}
-          disabled={!uploadedPhoto || (activeTab === 'card' && !idGenerated)}
+          disabled={!uploadedPhoto || (activeTab === 'card' && !idGenerated) || isSharing}
           id="btn-share"
         >
-          🐦 Share to X
+          {isSharing ? 'Preparing...' : '🐦 Share to X'}
         </button>
       </div>
 
